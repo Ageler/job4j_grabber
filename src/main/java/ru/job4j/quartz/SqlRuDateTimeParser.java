@@ -7,8 +7,12 @@ import static java.util.Map.entry;
 
 public class SqlRuDateTimeParser implements DateTimeParse {
 
+    private int year;
+    private int day;
+    private int month;
+
     private static final Map<String, String> MONTH = Map.ofEntries(
-                entry("янв", "01"),
+            entry("янв", "01"),
             entry("фев", "02"),
             entry("мар", "03"),
             entry("апр", "04"),
@@ -25,23 +29,17 @@ public class SqlRuDateTimeParser implements DateTimeParse {
     @Override
     public LocalDateTime parse(String parse) {
         String[] jobDate = parse.split(",");
-        int year;
-        int day;
-        int month;
+
         String time = jobDate[1].substring(1, 6);
         int hours = Integer.parseInt(time.split(":")[0]);
         int minutes = Integer.parseInt(time.split(":")[1]);
         if (jobDate[0].equals("сегодня")) {
             LocalDateTime thisDay = LocalDateTime.now();
-             day = thisDay.getDayOfMonth();
-             month = thisDay.getMonth().getValue();
-             year = thisDay.getYear();
+             parseDate(thisDay);
 
         } else if (jobDate[0].equals("вчера")) {
             LocalDateTime localDate = LocalDateTime.now().minusDays(1);
-            year = localDate.getYear();
-            month = localDate.getMonthValue();
-            day = localDate.getDayOfMonth();
+            parseDate(localDate);
         } else {
             String[] date = jobDate[0].split(" ");
             day = Integer.parseInt(date[0]);
@@ -49,5 +47,11 @@ public class SqlRuDateTimeParser implements DateTimeParse {
             year = Integer.parseInt("20" + date[2]);
         }
         return LocalDateTime.of(year, month, day, hours, minutes);
+    }
+
+    public void parseDate(LocalDateTime thisDay) {
+        day = thisDay.getDayOfMonth();
+        month = thisDay.getMonth().getValue();
+        year = thisDay.getYear();
     }
 }

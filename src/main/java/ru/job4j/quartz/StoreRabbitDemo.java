@@ -1,17 +1,15 @@
 package ru.job4j.quartz;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
+import java.sql.*;
+import java.util.Date;
+
+@RequiredArgsConstructor
 public class StoreRabbitDemo {
 
-    Connection cn;
-
-    public StoreRabbitDemo(Connection connection) {
-        this.cn = connection;
-    }
+    private final Connection cn;
 
     public boolean add(Date date) {
 
