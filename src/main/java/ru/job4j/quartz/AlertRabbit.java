@@ -20,24 +20,17 @@ import static org.quartz.SimpleScheduleBuilder.*;
 public class AlertRabbit {
 
     private Properties properties;
-
     private static Connection connection;
-    private static final int PAGE = 3;
+    private static int page;
 
-    public AlertRabbit(Properties properties, String filepath) {
-        this.properties = properties;
-        initConnection(filepath);
-    }
-
-    public void initConnection(String filePath) {
-        InputStream input;
-        try {
-            input = new FileInputStream(filePath);
+    public void initConnection(String filePath, Properties properties) {
+        try (InputStream input = new FileInputStream(filePath)) {
             properties.load(input);
         Class.forName(properties.getProperty("jdbc.driver"));
         String url = properties.getProperty("jdbc.url");
         String login = properties.getProperty("jdbc.username");
         String password = properties.getProperty("jdbc.password");
+        page = Integer.parseInt(properties.getProperty("count.pages"));
             connection = DriverManager.getConnection(url, login, password);
         } catch (IOException | ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -45,10 +38,10 @@ public class AlertRabbit {
     }
 
     public static void main(String[] args) {
+        AlertRabbit alertRabbit = new AlertRabbit();
+        alertRabbit.initConnection("src/main/resources/rabbit.properties", new Properties());
         SqlRuParse sqlRuParse = new SqlRuParse();
-        AlertRabbit alertRabbit = new AlertRabbit(
-                new Properties(),
-                "src/main/resources/rabbit.properties");
+        sqlRuParse.siteParse(page);
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
@@ -66,7 +59,7 @@ public class AlertRabbit {
                     .withSchedule(times)
                     .build();
             scheduler.scheduleJob(job, trigger);
-            Thread.sleep(5000);
+            Thread.sleep(10000);
             scheduler.shutdown();
 
         } catch (Exception se) {
@@ -86,7 +79,7 @@ public class AlertRabbit {
         public void execute(JobExecutionContext context) {
             storeRabbitDemo.add(new Date(System.currentTimeMillis()));
             SqlRuParse sqlRuParse = (SqlRuParse) context.getJobDetail().getJobDataMap().get("parse");
-            sqlRuParse.siteParse(PAGE);
+            sqlRuParse.siteParse(page);
         }
     }
 }
